@@ -1,0 +1,17 @@
+{
+	"name": "jtac",
+	"description":"Jira TerminAl Client",
+	"copyright": "Copyright © 2016, Matt Kline, Fluke Networks",
+	"license": "zlib",
+	"authors": ["Matt Kline"],
+	"targetType": "executable",
+	"buildTypes": {
+		"debug": {
+			"buildOptions": ["debugMode", "debugInfo", "unittests"]
+		}
+	},
+	"dependencies": {
+		"std_data_json": ">=0.18.1"
+	},
+	"libs": ["curl"]
+}

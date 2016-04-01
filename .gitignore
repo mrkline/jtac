@@ -1,0 +1,7 @@
+*.dub
+dub.selections.json
+*.obj
+*.a
+*.o
+*.swp
+jtac
