@@ -7,8 +7,8 @@ import std.array : empty;
 import stdx.data.json;
 
 import auth;
-import rest;
 import help;
+import issues;
 
 int main(string[] args)
 {
@@ -41,13 +41,7 @@ int main(string[] args)
 
 	createAuthString(username, password);
 
-	JSONValue testQuery = [
-		"jql" : JSONValue("assignee = currentUser() AND status != Done ORDER BY updatedDate DESC"),
-		"validateQuery" : JSONValue(true)
-	];
-
-	writeln(post(url ~ "/rest/api/2/search", testQuery, authHeader).toJSON());
-
+	printMyIssues(url);
 
 	return 0;
 }
