@@ -38,10 +38,12 @@ unittest
 
 class HTTPException : object.Exception {
 	immutable HTTP.StatusLine statusLine;
+	immutable string response;
 
-	this(HTTP.StatusLine sl, string file = null, size_t line = 0)
+	this(HTTP.StatusLine sl, string resp, string file = null, size_t line = 0)
 	{
 		statusLine = sl;
+		response = resp;
 		super(sl.toString(), file, line);
 	}
 }
@@ -56,14 +58,16 @@ void printHTTPException(const HTTPException ex)
 		case 401: stderr.writeln("(Are your credentials correct?)"); break;
 		default: break;
 	}
+	stderr.writeln("Response was:");
+	stderr.writeln(ex.response);
 }
 
 void enforce200(string file = __FILE__, size_t line = __LINE__)
-	(ref HTTP request)
+	(ref HTTP request, string response)
 {
 	import std.exception;
 	if (request.statusLine.code != 200) {
-		throw new HTTPException(request.statusLine, file, line);
+		throw new HTTPException(request.statusLine, response, file, line);
 	}
 }
 
@@ -105,7 +109,7 @@ JSONValue post(string url, string content, string[string] extraHeaders = null)
 		return data.length;
 	};
 	request.perform();
-	enforce200(request);
+	enforce200(request, response);
 
 	if (response.strip().empty) return JSONValue.init;
 	else return toJSONValue(response);
@@ -133,6 +137,6 @@ JSONValue get(string url, string[string] extraHeaders = null)
 		return data.length;
 	};
 	request.perform();
-	enforce200(request);
+	enforce200(request, response);
 	return toJSONValue(response);
 }
