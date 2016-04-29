@@ -18,7 +18,7 @@ import rest;
 
 void printMyIssues(string[] args)
 {
-	auto issues = getIssuesSummary(url);
+	auto issues = getIssuesSummary();
 
 	writeln("My issues:");
 	foreach (ref issue; issues) {
@@ -33,7 +33,9 @@ void printIssue(string[] args)
 
 	if (args.length < 3) writeAndFail("Usage: jtac show <issue>");
 
-	immutable issueJSON = getIssue(url, args[2]);
+	immutable key = args[2];
+
+	immutable issueJSON = getIssue(key);
 	immutable summary = extractSummary(issueJSON);
 	immutable fields = getFields(issueJSON);
 	immutable description = extractDescription(fields);
@@ -41,7 +43,7 @@ void printIssue(string[] args)
 	writeIssueSummaryLine(summary);
 	writeln();
 
-	const DateTime dt = extractDate(fields).toLocalTime().to!DateTime;
+	immutable DateTime dt = extractDate(fields).toLocalTime().to!DateTime;
 	writeln("Last updated ", dt.toISOExtString().replaceFirst("T", ", "));
 	writeln();
 
@@ -103,7 +105,7 @@ IssueSummary extractSummary(const ref JSONValue val)
 	return ret;
 }
 
-auto getIssuesSummary(string url)
+auto getIssuesSummary()
 {
 	string testQuery = `{
 		"jql" : "assignee = currentUser() AND status != Done ORDER BY updatedDate DESC",
@@ -118,7 +120,7 @@ auto getIssuesSummary(string url)
 	return issues.get!(JSONValue[]).map!(v => extractSummary(v));
 }
 
-auto getIssue(string url, string key)
+auto getIssue(string key)
 {
 	return get(url ~ "/rest/api/2/issue/" ~ key, authHeader);
 }
