@@ -22,13 +22,56 @@ jtac v0.1 by Matt Kline, Fluke Networks
 EOS";
 
 string helpText = q"EOS
-Usage: jtac <subcommand> [<subcommand args>]
+Usage: jtac --username <uname> --password <pass> <command> [<command args>]
 
-jtac is JIRA Tooling and Automation CLI (and totally not a backronym).
+JTAC is the JIRA Tooling and Automation CLI (and totally not a backronym).
 Its goal is to automate some of the more trivial parts of a JIRA/Git workflow.
 
-Verbosity levels are (roughly)
-1+: Print major actions (mostly JIRA server interactions) as they are performed
-2+: Print additional info (URLs being used for HTTP requests, etc.)
-3+: Print debug-level info (contents of HTTP POSTs, etc.)
+Options:
+
+  --help, -h
+    Display this help text.
+
+  --version, -V
+    Display version information.
+
+  --verbose, -v
+    Print extra info to stderr. Can be specified multiple times for more info.
+
+    Verbosity levels are (roughly)
+    1+: Print major actions (mostly JIRA server interactions) as they happen.
+    2+: Print additional info (URLs being used for HTTP requests, etc.).
+    3+: Print debug-level info (contents of HTTP POSTs, etc.).
+
+  --username
+    Your JIRA username
+
+  --password
+    Your JIRA password (See below for ways to provide this securely.)
+
+All of the above options can also be set in a config file, which should
+be saved as $XDG_CONFIG_HOME/jtacrc (usually ~/.config/jtacrc).
+Each line in this file can specify an option with the following syntax:
+
+  option = value
+
+Only foolish users would place a password in plaintext file. To prevent such a
+tragedy, options can be provided via a shell command surrounded by $( ).
+For example, one could provide their password using secret-tool like so:
+
+  password = $(secret-tool lookup <needed args>)
+
+
+Commands:
+
+  jtac issues
+      List all issues assigned to you and not marked as Done.
+
+  jtac show <issue>
+      Show info for the given issue. Currently this only includes
+      the last-modified time and the issue description.
+
+  jtac transition <issue> [<transition to>]
+      List the states the given issue can transition to, or perform a transition
+      to the given state.
 EOS";

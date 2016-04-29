@@ -35,7 +35,7 @@ int main(string[] args)
 			case "username": username = value; break;
 			case "password": password = value; break;
 			case "url" : localUrl = value; break;
-			case "verbosity": {
+			case "verbose": {
 				try { localVerb = value.to!uint; }
 				catch (ConvException ce) {
 					stderr.writeln("Couldn't convert \"", value, "\" to int");
