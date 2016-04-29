@@ -9,6 +9,7 @@ import stdx.data.json;
 import auth;
 import help;
 import issues;
+import rest : HTTPException, printHTTPException;
 
 // Make these guys global for easy access
 shared int verbosity;
@@ -50,17 +51,23 @@ int main(string[] args)
 
 	if (args.length < 2) writeAndFail(helpText);
 
-	switch(args[1]) {
-		case "issues":
-			printMyIssues(args);
-			break;
+	try {
+		switch(args[1]) {
+			case "issues":
+				printMyIssues(args);
+				break;
 
-		case "show":
-			printIssue(args);
-			break;
+			case "show":
+				printIssue(args);
+				break;
 
-		default:
-			writeAndFail(helpText);
+			default:
+				writeAndFail(helpText);
+		}
+	}
+	catch (HTTPException ex) {
+		printHTTPException(ex);
+		return 1;
 	}
 
 	return 0;

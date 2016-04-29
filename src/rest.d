@@ -46,6 +46,17 @@ class HTTPException : object.Exception {
 	}
 }
 
+void printHTTPException(const HTTPException ex)
+{
+	import std.stdio;
+
+	stderr.writeln("Got HTTP ", ex.statusLine.code, " ", ex.statusLine.reason);
+	switch (ex.statusLine.code) {
+		case 404: stderr.writeln("(Is the issue ID correct?)"); break;
+		case 401: stderr.writeln("(Are your credentials correct?)"); break;
+		default: break;
+	}
+}
 
 void enforce200(string file = __FILE__, size_t line = __LINE__)
 	(ref HTTP request)
