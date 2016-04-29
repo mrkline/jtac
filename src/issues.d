@@ -10,7 +10,7 @@ import std.stdio;
 
 import stdx.data.json;
 
-import jtac : url;
+import jtac : url, verbosity;
 
 import auth;
 import help;
@@ -20,6 +20,7 @@ import rest;
 /// Top-level command: Get issues and write out their one-line summaries
 void printMyIssues(string[] args)
 {
+	if (verbosity > 0) stderr.writeln("Requesting the user's issues from JIRA server");
 	auto issues = getIssuesSummary();
 
 	writeln("My issues:");
@@ -39,6 +40,7 @@ void printIssue(string[] args)
 
 	immutable key = args[2];
 
+	if (verbosity > 0) stderr.writeln("Requesting issue ", key, " from JIRA server");
 	immutable issueJSON = getIssue(key);
 	immutable summary = extractSummary(issueJSON);
 	immutable fields = getFields(issueJSON);
@@ -50,6 +52,7 @@ void printIssue(string[] args)
 	writeln("Last updated ", dt.toISOExtString().replaceFirst("T", ", "));
 	writeln();
 
+	if (verbosity > 0) stderr.writeln("Formatting issue description using par");
 	immutable description = extractDescription(fields);
 	formatAndWriteWithPar(description);
 }
@@ -67,11 +70,13 @@ void transitionIssue(string[] args)
 	// If the user didn't specify anything to transition to,
 	// list possible transitions.
 	if (args.length == 3) {
+		if (verbosity > 0) stderr.writeln("Requesting issue ", key, " from JIRA server");
 		immutable issueJSON = getIssue(key);
 		immutable summary = extractSummary(issueJSON);
 
 		writeIssueSummaryLine(summary);
 
+		if (verbosity > 0) stderr.writeln("Requesting possible transition states from JIRA server");
 		const JSONValue[] statesJSON = getIssueStates(key);
 
 		writeln("can transition to:");
@@ -86,7 +91,11 @@ void transitionIssue(string[] args)
 
 		// We have to get all issues and look up which one has the given name
 		// (via getStateID) before passing that ID to transitionToState.
-		transitionToState(key, getStateID(key, toState));
+		if (verbosity > 0) stderr.writeln("Querying server for issue state named \"", toState, '"');
+		string id = getStateID(key, toState);
+
+		if (verbosity > 0) stderr.writeln("Attempting to transition issue state");
+		transitionToState(key, id);
 	}
 }
 

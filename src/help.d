@@ -22,5 +22,13 @@ jtac v0.1 by Matt Kline, Fluke Networks
 EOS";
 
 string helpText = q"EOS
-<TODO: help text here>
+Usage: jtac <subcommand> [<subcommand args>]
+
+jtac is JIRA Tooling and Automation CLI (and totally not a backronym).
+Its goal is to automate some of the more trivial parts of a JIRA/Git workflow.
+
+Verbosity levels are (roughly)
+1+: Print major actions (mostly JIRA server interactions) as they are performed
+2+: Print additional info (URLs being used for HTTP requests, etc.)
+3+: Print debug-level info (contents of HTTP POSTs, etc.)
 EOS";

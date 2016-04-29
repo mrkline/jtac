@@ -2,8 +2,11 @@
 module rest;
 
 import std.net.curl;
+import std.stdio : stderr; // For verbose printing
 
 import stdx.data.json;
+
+import jtac : verbosity;
 
 /// Builds URL parameter lists from the given key -> value pairs
 string buildURLParameters(string[string] params)
@@ -95,6 +98,12 @@ JSONValue post(string url, string content, string[string] extraHeaders = null)
 {
 	import std.string : empty, strip;
 
+	if (verbosity > 1) stderr.writeln("POSTing to ", url);
+	if (verbosity > 2) {
+		stderr.writeln("POST content:");
+		stderr.writeln(content);
+	}
+
 	string response;
 
 	auto request = HTTP(url);
@@ -124,6 +133,8 @@ JSONValue post(string url, JSONValue content, string[string] extraHeaders = null
 /// GETs the given URL with the given headers
 JSONValue get(string url, string[string] extraHeaders = null)
 {
+	if (verbosity> 1) stderr.writeln("GETting from ", url);
+
 	string response;
 
 	auto request = HTTP(url);
