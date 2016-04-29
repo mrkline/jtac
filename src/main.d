@@ -10,22 +10,29 @@ import auth;
 import help;
 import issues;
 
+// Make these guys global for easy access
+shared int verbosity;
+shared string url;
+
 int main(string[] args)
 {
-	int verbosity;
 	string username;
 	string password;
-	string url;
+	// To suppress complaints about read-modify-write on the global shared variables:
+	int localVerb;
+	string localUrl;
 
 	try {
 		getopt(args, config.caseSensitive, config.bundling,
 			"help|h", { writeAndSucceed(helpText); },
 			"version|V", { writeAndSucceed(versionString); },
-			"verbose|v+", &verbosity,
+			"verbose|v+", &localVerb,
 			"username|u", &username,
 			"password|p", &password,
-			"url", &url
+			"url", &localUrl
 			);
+		verbosity = localVerb;
+		url = localUrl;
 	}
 	catch (GetOptException ex) {
 		writeAndFail(ex.msg, "\n\n", helpText);
@@ -41,7 +48,20 @@ int main(string[] args)
 
 	createAuthString(username, password);
 
-	printMyIssues(url);
+	if (args.length < 2) writeAndFail(helpText);
+
+	switch(args[1]) {
+		case "issues":
+			printMyIssues(args);
+			break;
+
+		case "show":
+			printIssue(args);
+			break;
+
+		default:
+			writeAndFail(helpText);
+	}
 
 	return 0;
 }
