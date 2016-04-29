@@ -89,6 +89,8 @@ private @property outgoingString(ref HTTP request, const(void)[] sendData)
 /// POSTs the given content to the given URL with the given headers
 JSONValue post(string url, string content, string[string] extraHeaders = null)
 {
+	import std.string : empty, strip;
+
 	string response;
 
 	auto request = HTTP(url);
@@ -104,7 +106,9 @@ JSONValue post(string url, string content, string[string] extraHeaders = null)
 	};
 	request.perform();
 	enforce200(request);
-	return toJSONValue(response);
+
+	if (response.strip().empty) return JSONValue.init;
+	else return toJSONValue(response);
 }
 
 /// Ditto, but with JSON
