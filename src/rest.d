@@ -62,11 +62,11 @@ void printHTTPException(const HTTPException ex)
 	stderr.writeln(ex.response);
 }
 
-void enforce200(string file = __FILE__, size_t line = __LINE__)
+void enforce2xx(string file = __FILE__, size_t line = __LINE__)
 	(ref HTTP request, string response)
 {
 	import std.exception;
-	if (request.statusLine.code != 200) {
+	if (request.statusLine.code < 200 || request.statusLine.code >= 300) {
 		throw new HTTPException(request.statusLine, response, file, line);
 	}
 }
@@ -109,7 +109,7 @@ JSONValue post(string url, string content, string[string] extraHeaders = null)
 		return data.length;
 	};
 	request.perform();
-	enforce200(request, response);
+	enforce2xx(request, response);
 
 	if (response.strip().empty) return JSONValue.init;
 	else return toJSONValue(response);
@@ -137,6 +137,6 @@ JSONValue get(string url, string[string] extraHeaders = null)
 		return data.length;
 	};
 	request.perform();
-	enforce200(request, response);
+	enforce2xx(request, response);
 	return toJSONValue(response);
 }
