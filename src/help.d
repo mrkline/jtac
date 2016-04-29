@@ -18,8 +18,9 @@ void writeAndFail(S...)(S helpText)
 }
 
 string versionString = q"EOS
-stales v0.1 by Matt Kline, Fluke Networks
+jtac v0.1 by Matt Kline, Fluke Networks
 EOS";
 
 string helpText = q"EOS
+<TODO: help text here>
 EOS";
