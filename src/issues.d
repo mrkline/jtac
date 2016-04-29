@@ -17,6 +17,7 @@ import help;
 import par;
 import rest;
 
+/// Top-level command: Get issues and write out their one-line summaries
 void printMyIssues(string[] args)
 {
 	auto issues = getIssuesSummary();
@@ -28,6 +29,8 @@ void printMyIssues(string[] args)
 	}
 }
 
+/// Top-level command: Get an issue and write its summary, update time,
+/// and description
 void printIssue(string[] args)
 {
 	import std.array : replaceFirst;
@@ -51,6 +54,8 @@ void printIssue(string[] args)
 	formatAndWriteWithPar(description);
 }
 
+/// Top-level command: Show states an issue can transition to,
+/// or perform one of these transitions.
 void transitionIssue(string[] args)
 {
 	if (args.length < 3) {
@@ -79,6 +84,8 @@ void transitionIssue(string[] args)
 		// has spaces and the user didn't enclose it in quotes
 		string toState = joiner(args[3 .. $], " ").to!string;
 
+		// We have to get all issues and look up which one has the given name
+		// (via getStateID) before passing that ID to transitionToState.
 		transitionToState(key, getStateID(key, toState));
 	}
 }
@@ -200,11 +207,10 @@ string getStateID(string key, string stateName)
 	return states[0]["id"].get!string;
 }
 
+/// Given an issue and a stateID, transition to that state
 void transitionToState(string key, string stateID)
 {
-	string toPost = `{
-		"transition" : { "id" : "` ~ stateID ~ `" }
-	}`;
+	string toPost = `{ "transition" : { "id" : "` ~ stateID ~ `" }}`;
 
 	auto result = post(url ~ "issue/" ~ key ~ "/transitions", toPost, authHeader);
 }
