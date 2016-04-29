@@ -2,6 +2,7 @@
 module issues;
 
 import std.algorithm;
+import std.array : empty;
 import std.conv : to;
 import std.datetime;
 import std.exception : enforce;
@@ -38,7 +39,6 @@ void printIssue(string[] args)
 	immutable issueJSON = getIssue(key);
 	immutable summary = extractSummary(issueJSON);
 	immutable fields = getFields(issueJSON);
-	immutable description = extractDescription(fields);
 
 	writeIssueSummaryLine(summary);
 	writeln();
@@ -47,23 +47,60 @@ void printIssue(string[] args)
 	writeln("Last updated ", dt.toISOExtString().replaceFirst("T", ", "));
 	writeln();
 
+	immutable description = extractDescription(fields);
 	formatAndWriteWithPar(description);
+}
+
+void transitionIssue(string[] args)
+{
+	if (args.length < 3) {
+		writeAndFail("Usage: jtac transition <issue> [<transition to>]");
+	}
+
+	immutable key = args[2];
+
+	// If the user didn't specify anything to transition to,
+	// list possible transitions.
+	if (args.length == 3) {
+		immutable issueJSON = getIssue(key);
+		immutable summary = extractSummary(issueJSON);
+
+		writeIssueSummaryLine(summary);
+
+		const JSONValue[] statesJSON = getIssueStates(key);
+
+		writeln("can transition to:");
+		foreach (state; statesJSON.map!(j => extractStateName(j))) {
+			writeln("\t", state);
+		}
+	}
+	else {
+		// Join subsequent args together to handle a case where the state name
+		// has spaces and the user didn't enclose it in quotes
+		string toState = joiner(args[3 .. $], " ").to!string;
+
+		transitionToState(key, getStateID(key, toState));
+	}
 }
 
 private:
 
+/// The JSON returned by the endpoint "issue/<id>" holds most info in a "fields"
+/// ...field.
 JSONValue getFields(const ref JSONValue val)
 {
 	enforce("fields" in val, "Could not find issue fields");
 	return val["fields"];
 }
 
+/// Pulls the description of an issue from its fields
 string extractDescription(const ref JSONValue fields)
 {
 	enforce("description" in fields, "Could not find issue description");
 	return fields["description"].get!string;
 }
 
+/// Pulls the "last updated" date out of an issue from its fields
 auto extractDate(const ref JSONValue fields)
 {
 	import std.array : insertInPlace;
@@ -86,6 +123,7 @@ void writeIssueSummaryLine(const ref IssueSummary summ)
 	writeln(summ.key, ": ", summ.summary, " (", summ.status, ")");
 }
 
+// Extracts an issues's summary (key, summary, and status) from its JSON
 IssueSummary extractSummary(const ref JSONValue val)
 {
 	IssueSummary ret;
@@ -105,6 +143,7 @@ IssueSummary extractSummary(const ref JSONValue val)
 	return ret;
 }
 
+/// Returns a range of issue summaries for all a users' issues that aren't Done
 auto getIssuesSummary()
 {
 	string testQuery = `{
@@ -113,14 +152,59 @@ auto getIssuesSummary()
 		"fields" : ["summary", "status"]
 	}`;
 
-	auto issues = post(url ~ "/rest/api/2/search", testQuery, authHeader)["issues"];
+	auto issues = post(url ~ "search", testQuery, authHeader)["issues"];
 
 	enforce(issues.hasType!(JSONValue[]), ".issues isn't an array of the issues");
 
 	return issues.get!(JSONValue[]).map!(v => extractSummary(v));
 }
 
+/// Returns the JSON for a given issue
 auto getIssue(string key)
 {
-	return get(url ~ "/rest/api/2/issue/" ~ key, authHeader);
+	return get(url ~ "issue/" ~ key, authHeader);
+}
+
+/// Returns the JSON array of states for a given issue
+auto getIssueStates(string key)
+{
+	// The "transitions" endpoint lists the states an issue can transition *to*,
+	// not the transitions themselves. Boo, Atlassian.
+	auto result = get(url ~ "issue/" ~ key ~ "/transitions", authHeader);
+	enforce("transitions" in result);
+
+	auto transitions = result["transitions"];
+	enforce(transitions.hasType!(JSONValue[]),
+	        ".transitions isn't an array of transitions");
+	return transitions.get!(JSONValue[]);
+}
+
+/// Extracts a state's name from its JSON
+string extractStateName(const ref JSONValue state)
+{
+	enforce("name" in state, "Couldn't extract a state's name");
+	return state["name"].get!string;
+}
+
+/// Iterates through all states, finding the ID of the first with the given name.
+/// These IDs seem to be numeric, but are strings. Screwy.
+string getStateID(string key, string stateName)
+{
+
+	const(JSONValue)[] states = getIssueStates(key);
+
+	states = states.find!(j => extractStateName(j) == stateName);
+	if (states.empty) writeAndFail("Couldn't find state with name ", stateName);
+
+	enforce("id" in states[0]);
+	return states[0]["id"].get!string;
+}
+
+void transitionToState(string key, string stateID)
+{
+	string toPost = `{
+		"transition" : { "id" : "` ~ stateID ~ `" }
+	}`;
+
+	auto result = post(url ~ "issue/" ~ key ~ "/transitions", toPost, authHeader);
 }

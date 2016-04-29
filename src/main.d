@@ -56,7 +56,8 @@ int main(string[] args)
 			"url", &localUrl
 			);
 		verbosity = localVerb;
-		url = localUrl;
+		// Tack on the API base point
+		url = localUrl ~ "/rest/api/2/";
 	}
 	catch (GetOptException ex) {
 		writeAndFail(ex.msg, "\n\n", helpText);
@@ -82,6 +83,11 @@ int main(string[] args)
 
 			case "show":
 				printIssue(args);
+				break;
+
+			case "transition":
+			case "transitions": // Be forgiving
+				transitionIssue(args);
 				break;
 
 			default:
