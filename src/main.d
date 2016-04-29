@@ -1,5 +1,6 @@
 module jtac;
 
+import std.conv;
 import std.stdio;
 import std.getopt;
 import std.array : empty;
@@ -10,18 +11,40 @@ import auth;
 import help;
 import issues;
 import rest : HTTPException, printHTTPException;
+import rc;
 
 // Make these guys global for easy access
-shared int verbosity;
+shared uint verbosity;
 shared string url;
 
 int main(string[] args)
 {
 	string username;
 	string password;
-	// To suppress complaints about read-modify-write on the global shared variables:
-	int localVerb;
+	// To suppress complaints about read-modify-write on the global shared variables,
+	// parse config and args with locals, then assign to the globals above.
 	string localUrl;
+	uint localVerb;
+
+	// Get anything in the jtacrc
+	string[string] rcConfig = loadRC!"jtacrc"();
+
+	// Check those for recognized arguments
+	foreach (key, value; rcConfig) {
+		switch(key) {
+			case "username": username = value; break;
+			case "password": password = value; break;
+			case "url" : localUrl = value; break;
+			case "verbosity": {
+				try { localVerb = value.to!uint; }
+				catch (ConvException ce) {
+					stderr.writeln("Couldn't convert \"", value, "\" to int");
+				}
+				break;
+			}
+			default: stderr.writeln("Unknown option \"", key, "\" in config"); break;
+		}
+	}
 
 	try {
 		getopt(args, config.caseSensitive, config.bundling,
