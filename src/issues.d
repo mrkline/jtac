@@ -1,4 +1,5 @@
-/// Commands for getting issue information
+/// Commands for getting issue information,
+/// and plumbing for pulling useful info out of JIRA's JSON responses.
 module issues;
 
 import std.algorithm;
@@ -56,50 +57,6 @@ void printIssue(string[] args)
 	immutable description = extractDescription(fields);
 	formatAndWriteWithPar(description);
 }
-
-/// Top-level command: Show states an issue can transition to,
-/// or perform one of these transitions.
-void transitionIssue(string[] args)
-{
-	if (args.length < 3) {
-		writeAndFail("Usage: jtac transition <issue> [<transition to>]");
-	}
-
-	immutable key = args[2];
-
-	// If the user didn't specify anything to transition to,
-	// list possible transitions.
-	if (args.length == 3) {
-		if (verbosity > 0) stderr.writeln("Requesting issue ", key, " from JIRA server");
-		immutable issueJSON = getIssue(key);
-		immutable summary = extractSummary(issueJSON);
-
-		writeIssueSummaryLine(summary);
-
-		if (verbosity > 0) stderr.writeln("Requesting possible transition states from JIRA server");
-		const JSONValue[] statesJSON = getIssueStates(key);
-
-		writeln("can transition to:");
-		foreach (state; statesJSON.map!(j => extractStateName(j))) {
-			writeln("\t", state);
-		}
-	}
-	else {
-		// Join subsequent args together to handle a case where the state name
-		// has spaces and the user didn't enclose it in quotes
-		string toState = joiner(args[3 .. $], " ").to!string;
-
-		// We have to get all issues and look up which one has the given name
-		// (via getStateID) before passing that ID to transitionToState.
-		if (verbosity > 0) stderr.writeln("Querying server for issue state named \"", toState, '"');
-		string id = getStateID(key, toState);
-
-		if (verbosity > 0) stderr.writeln("Attempting to transition issue state");
-		transitionToState(key, id);
-	}
-}
-
-private:
 
 /// The JSON returned by the endpoint "issue/<id>" holds most info in a "fields"
 /// ...field.
@@ -206,7 +163,6 @@ string extractStateName(const ref JSONValue state)
 /// These IDs seem to be numeric, but are strings. Screwy.
 string getStateID(string key, string stateName)
 {
-
 	const(JSONValue)[] states = getIssueStates(key);
 
 	states = states.find!(j => extractStateName(j) == stateName);

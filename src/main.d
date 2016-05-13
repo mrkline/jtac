@@ -10,8 +10,10 @@ import stdx.data.json;
 import auth;
 import help;
 import issues;
-import rest : HTTPException, printHTTPException;
 import rc;
+import rest : HTTPException, printHTTPException;
+import start;
+import transition;
 
 // Make these guys global for easy access
 shared uint verbosity;
@@ -88,6 +90,10 @@ int main(string[] args)
 			case "transition":
 			case "transitions": // Be forgiving
 				transitionIssue(args);
+				break;
+
+			case "start":
+				startIssue(args);
 				break;
 
 			default:
