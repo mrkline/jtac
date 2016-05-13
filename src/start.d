@@ -46,7 +46,7 @@ void startIssue(string[] args)
 
     // Get the summary and make a name for it
     string branchName = "topics/" ~ // TODO: Don't hardcode prefix
-		makeBranchNameFromSummary(extractSummary(issueJSON).summary);
+		makeBranchNameFromSummary(key ~ "-" ~ extractSummary(issueJSON).summary);
 
 	if (!isValidBranchName(branchName)) {
 		stderr.writeln(
