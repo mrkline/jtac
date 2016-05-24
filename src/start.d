@@ -32,20 +32,40 @@ void startIssue(string[] args)
 		stderr.writeln("Warning: ", key, " is not an unstarted issue.");
 	}
 
-	// We're making the assumption that the JIRA workflow's first step is
-	// "In progress"
+	// Try a few transition names that could "start" an issue.
+	// TODO: This should really be a config option.
+	string[] starters = [
+		"In Progress",
+		"Start Work",
+	];
+
 	try {
-		string inProgressID = getStateID(key, "In Progress");
-		transitionToState(key, inProgressID);
-		if (verbosity > 0) stderr.writeln(key, " state set to \"In Progress\"");
+		auto transitions = getIssueTransitions(key);
+
+		string transitionUsed, transitionID;
+		foreach (starter; starters) {
+			transitionID = getTransitionID(transitions, starter);
+			if (!transitionID.empty()) {
+				transitionUsed = starter;
+				break;
+			}
+		}
+
+		if (transitionID.empty()) {
+			writeAndFail("Couldn't find a transition that would start the story");
+		}
+
+
+		if (verbosity > 0) stderr.writeln("Executing transition \"", transitionUsed, '"');
+		transitionTo(key, transitionID);
 	}
 	catch (HTTPException ex) {
 		writeAndFail("Couldn't mark ", key, " as \"In Progress\" (HTTP ",
 		             ex.statusLine.code, ")");
 	}
 
-    // Get the summary and make a name for it
-    string branchName = "topics/" ~ // TODO: Don't hardcode prefix
+	// Get the summary and make a name for it
+	string branchName = "topics/" ~ // TODO: Don't hardcode prefix
 		makeBranchNameFromSummary(key ~ "-" ~ extractSummary(issueJSON).summary);
 
 	if (!isValidBranchName(branchName)) {

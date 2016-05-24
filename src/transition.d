@@ -1,6 +1,7 @@
 module transition;
 
 import std.algorithm;
+import std.array : empty;
 import std.conv : to;
 import std.stdio;
 
@@ -31,24 +32,26 @@ void transitionIssue(string[] args)
 		writeIssueSummaryLine(summary);
 
 		if (verbosity > 0) stderr.writeln("Requesting possible transition states from JIRA server");
-		const JSONValue[] statesJSON = getIssueStates(key);
+		const JSONValue[] transitionsJSON = getIssueTransitions(key);
 
 		writeln("can transition to:");
-		foreach (state; statesJSON.map!(j => extractStateName(j))) {
+		foreach (state; transitionsJSON.map!(j => extractStateName(j))) {
 			writeln("\t", state);
 		}
 	}
 	else {
 		// Join subsequent args together to handle a case where the state name
 		// has spaces and the user didn't enclose it in quotes
-		string toState = joiner(args[3 .. $], " ").to!string;
+		string to = joiner(args[3 .. $], " ").to!string;
 
 		// We have to get all issues and look up which one has the given name
-		// (via getStateID) before passing that ID to transitionToState.
-		if (verbosity > 0) stderr.writeln("Querying server for issue state named \"", toState, '"');
-		string id = getStateID(key, toState);
+		// (via getTransitionID) before passing that ID to transitionToState.
+		if (verbosity > 0) stderr.writeln("Querying server for issue transition named \"", to, '"');
+		string id = getTransitionID(getIssueTransitions(key), to);
 
-		if (verbosity > 0) stderr.writeln("Attempting to transition issue state");
-		transitionToState(key, id);
+		if (id.empty) writeAndFail("Couldn't find tansition named \"", to);
+
+		if (verbosity > 0) stderr.writeln("Attempting to transition issue");
+		transitionTo(key, id);
 	}
 }

@@ -138,11 +138,10 @@ auto getIssue(string key)
 	return get(url ~ "issue/" ~ key, authHeader);
 }
 
-/// Returns the JSON array of states for a given issue
-auto getIssueStates(string key)
+/// Returns the JSON array of transitions for a given issue
+auto getIssueTransitions(string key)
 {
-	// The "transitions" endpoint lists the states an issue can transition *to*,
-	// not the transitions themselves. Boo, Atlassian.
+	// The "transitions" endpoint lists the transitions for an issue
 	auto result = get(url ~ "issue/" ~ key ~ "/transitions", authHeader);
 	enforce("transitions" in result);
 
@@ -159,23 +158,23 @@ string extractStateName(const ref JSONValue state)
 	return state["name"].get!string;
 }
 
-/// Iterates through all states, finding the ID of the first with the given name.
+/// Iterates through all transitions, finding the ID of the first with the given name.
 /// These IDs seem to be numeric, but are strings. Screwy.
-string getStateID(string key, string stateName)
+string getTransitionID(const(JSONValue)[] transitions, string stateName)
 {
-	const(JSONValue)[] states = getIssueStates(key);
+	transitions = transitions.find!(j => extractStateName(j) == stateName);
 
-	states = states.find!(j => extractStateName(j) == stateName);
-	if (states.empty) writeAndFail("Couldn't find state with name ", stateName);
+	// Return an empty string if we didn't find it
+	if (transitions.empty) return "";
 
-	enforce("id" in states[0]);
-	return states[0]["id"].get!string;
+	enforce("id" in transitions[0]);
+	return transitions[0]["id"].get!string;
 }
 
-/// Given an issue and a stateID, transition to that state
-void transitionToState(string key, string stateID)
+/// Given an issue and a transition ID, make that transition.
+void transitionTo(string key, string transitionID)
 {
-	string toPost = `{ "transition" : { "id" : "` ~ stateID ~ `" }}`;
+	string toPost = `{ "transition" : { "id" : "` ~ transitionID ~ `" }}`;
 
 	auto result = post(url ~ "issue/" ~ key ~ "/transitions", toPost, authHeader);
 }
