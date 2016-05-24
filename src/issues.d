@@ -14,6 +14,7 @@ import stdx.data.json;
 import jtac : url, verbosity;
 
 import auth;
+import conversion;
 import help;
 import par;
 import rest;
@@ -35,8 +36,6 @@ void printMyIssues(string[] args)
 /// and description
 void printIssue(string[] args)
 {
-	import std.array : replaceFirst;
-
 	if (args.length < 3) writeAndFail("Usage: jtac show <issue>");
 
 	immutable key = args[2];
@@ -50,7 +49,7 @@ void printIssue(string[] args)
 	writeln();
 
 	immutable DateTime dt = extractDate(fields).toLocalTime().to!DateTime;
-	writeln("Last updated ", dt.toISOExtString().replaceFirst("T", ", "));
+	writeln("Last updated ", dt.toPrintedTime());
 	writeln();
 
 	if (verbosity > 0) stderr.writeln("Formatting issue description using par");
@@ -76,13 +75,9 @@ string extractDescription(const ref JSONValue fields)
 /// Pulls the "last updated" date out of an issue from its fields
 auto extractDate(const ref JSONValue fields)
 {
-	import std.array : insertInPlace;
-
 	enforce("updated" in fields, "Could not find issue date");
 	string date = fields["updated"].get!string;
-	//fromISOExtString expects a colon in the time zone field.
-	date.insertInPlace(date.length - 2, ":");
-	return SysTime.fromISOExtString(date);
+	return fromJIRATime(date);
 }
 
 struct IssueSummary {
