@@ -9,7 +9,7 @@ and make a few common tasks possible via command line.
 
 1. A [D](http://dlang.org) toolchain
 
-2. [Dub](https://code.dlang.org/getting_started)
+2. [Dub](https://code.dlang.org/getting_started) (D's package manager)
 
 3. [par](https://en.wikipedia.org/wiki/Par_\(command\))
    (used for formatting, and usually available through your package manager)
