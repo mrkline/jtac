@@ -21,9 +21,6 @@ void logWork(string[] args)
 
 	WorkEvent we = parseSentence(joiner(args[2 .. $], " ").to!string);
 
-	// For debugging; the POST below is getting an HTTP 500 back.
-	writeln(toJSON(get(url ~ "issue/" ~ we.key ~ "/worklog", authHeader)));
-
 	JSONValue toPost = [
 		"started" : JSONValue(toJIRATime(SysTime(we.when))), // Use the local time zone.
 		"timeSpent" : JSONValue(we.duration)
