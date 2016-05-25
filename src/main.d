@@ -14,6 +14,7 @@ import rc;
 import rest : HTTPException, printHTTPException;
 import start;
 import transition;
+import worked;
 
 // Make these guys global for easy access
 shared uint verbosity;
@@ -94,6 +95,10 @@ int main(string[] args)
 
 			case "start":
 				startIssue(args);
+				break;
+
+			case "worked":
+				logWork(args);
 				break;
 
 			default:
