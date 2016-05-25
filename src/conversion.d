@@ -21,7 +21,7 @@ string toJIRATime(SysTime st)
 	import std.regex;
 
 	string ret = st.toISOExtString();
-
+	
 	// See above
 	enum timeZonePortion = ctRegex!(`([+-])(\d{2}):(\d{2})$`);
 
