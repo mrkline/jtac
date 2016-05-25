@@ -29,6 +29,7 @@ void logWork(string[] args)
 		toPost["comment"] = JSONValue(we.description);
 	}
 
+	if (verbosity > 0) stderr.writeln("Sending work log to JIRA server");
 	post(url ~ "issue/" ~ we.key ~ "/worklog", toPost, authHeader);
 }
 

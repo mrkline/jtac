@@ -74,4 +74,16 @@ Commands:
   jtac transition <issue> [<transition to>]
       List the states the given issue can transition to, or perform a transition
       to the given state.
+
+  jtac worked <date> [<time>] for <duration> on <issue>[: <comment>]
+      Logs the given amount of time, starting at the given date and time,
+      with an optional comment. If the time is not specified, 9 AM is assumed.
+      Dates and times are generally specified in ISO 8601 formats,
+      but JTAC tries to be liberal on what it accepts.
+      Examples:
+
+      jtac worked today for 2h on WUT-42: Did some work
+      jtac worked yesterday, 23:30 for 3h 2m on WUT-22: Got it working!
+      jtac worked 2016-05-25T1045 for 5m on WUT-6: Fixed the thing
+      jtac worked 2016-05-24 11:45 for 5m on WUT-9: Harder, better, faster...
 EOS";
